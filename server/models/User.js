@@ -63,6 +63,10 @@ const User = new Schema(
       required: [true, "Please enter a valid city!"],
       maxLength: [255, "City cannot be more than 255 characters in length!"],
     },
+    state: {
+      type: String,
+      maxLength: [128, "State cannot be more than 128 characters in length!"],
+    },
     zipCode: {
       type: Number,
       validate: {
@@ -71,10 +75,6 @@ const User = new Schema(
         },
         message: (props) => `${props.value} is not a valid zip code!`,
       },
-    },
-    state: {
-      type: String,
-      maxLength: [128, "State cannot be more than 128 characters in length!"],
     },
     country: {
       type: String,

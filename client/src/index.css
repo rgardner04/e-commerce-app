@@ -1,0 +1,12 @@
+html,
+body,
+#root {
+  margin: 0;
+  height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}

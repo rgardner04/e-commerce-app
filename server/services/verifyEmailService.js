@@ -23,7 +23,7 @@ const verifyEmailService = {
       from: `E-commerce App - ${process.env.NODEMAILER_EMAIL}`,
       to: toEmail,
       subject: "E-commerce App",
-      text: "Please verify your email to complete your E-commerce App registration.",
+      text: "Please verify your email to access the E-commerce App",
       html: `<p>Please enter the following code in the app to verify your email: <b>${code}</b></p>`,
     });
 

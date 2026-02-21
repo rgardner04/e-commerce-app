@@ -58,19 +58,12 @@ const authService = {
       );
     }
 
-    const { accessToken, refreshToken } = generateTokens(foundUser);
-
-    await jwtService.saveRefreshToken(foundUser, refreshToken);
-
     return {
       status: 200,
       body: {
-        message: "User has been logged in successfully.",
+        message:
+          "User has provided the correct credentials. Verification email has been sent.",
         status: "success",
-        tokens: {
-          accessToken,
-          refreshToken,
-        },
       },
     };
   },
