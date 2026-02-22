@@ -1,5 +1,11 @@
-import "../styles/FooterComponent.css";
+import { useAuthContext } from "../contexts/AuthContext";
 
 export default function FooterComponent() {
-  return <footer className="footer">Will come back to this!</footer>;
+  const { state } = useAuthContext();
+
+  {
+    state?.accessToken && state?.refreshToken ? (
+      <footer>Will come back to this footer!</footer>
+    ) : null;
+  }
 }

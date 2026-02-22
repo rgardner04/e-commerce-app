@@ -1,0 +1,33 @@
+.search-container {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0.5rem;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+.search-cta-header {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.search-cta-subtext {
+  margin-top: 0;
+  color: gray;
+  text-align: center;
+}
+
+.search-input {
+  font-size: 1rem;
+  padding: 0.5rem 0.75rem;
+  width: 90%;
+  max-width: 600px;
+  border-radius: 8px;
+  border: 0.0875rem solid gray;
+  background-color: #fafafa;
+}
+
+.search-input::hover {
+  border: 0.125rem solid var(--main-color);
+}

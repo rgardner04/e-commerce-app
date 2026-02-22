@@ -1,25 +1,18 @@
 const jwt = require("jsonwebtoken");
-const fs = require("fs");
 const RefreshToken = require("../models/RefreshToken");
-
-const privateKey = fs.readFileSync("./credentials/private.pem");
-const publicKey = fs.readFileSync("./credentials/public.pem");
 
 const jwtService = {
   generateAccessToken: function (userData) {
     const currentMs = Date.now();
-
-    const expiresAt = new Date(
-      currentMs + parseInt(process.env.ACCESS_JWT_EXPIRES_IN_SECONDS) * 1000,
-    ).getTime();
-
+    const privateKey = getPrivateKey();
     return jwt.sign(
       {
         sub: userData._id,
         iss: `${process.env.SERVER_URL}`,
         aud: "e-commerce-app",
-        exp: expiresAt,
-        iat: currentMs,
+        iat: currentMs / 1000,
+        exp:
+          currentMs / 1000 + parseInt(process.env.ACCESS_JWT_EXPIRES_SECONDS),
       },
       privateKey,
       { algorithm: "RS256" },
@@ -28,21 +21,17 @@ const jwtService = {
 
   generateRefreshToken: function (userData) {
     const currentMs = Date.now();
-
-    const expiresAt = new Date(
-      currentMs + parseInt(process.env.REFRESH_JWT_EXPIRES_IN_SECONDS * 1000),
-    ).getTime();
-
     return jwt.sign(
       {
         sub: userData._id.toString(),
         iss: `${process.env.SERVER_URL}`,
         aud: "e-commerce-app",
-        exp: expiresAt,
-        iat: currentMs,
+        iat: currentMs / 1000,
+        exp:
+          currentMs / 1000 + parseInt(process.env.REFRESH_JWT_EXPIRES_SECONDS),
         roles: userData.roles,
       },
-      privateKey,
+      getPrivateKey(),
       { algorithm: "RS256" },
     );
   },
@@ -54,7 +43,7 @@ const jwtService = {
       status: "created",
     });
 
-    await refreshToken.save();
+    await RefreshToken.create(refreshToken);
   },
 
   updateOldToken: async function (oldToken, newToken) {
@@ -66,13 +55,31 @@ const jwtService = {
     );
   },
 
+  generateTokens: function (user) {
+    const accessToken = jwtService.generateAccessToken(user);
+    const refreshToken = jwtService.generateRefreshToken(user);
+
+    return { accessToken, refreshToken };
+  },
+
   extractClaims: function (token) {
     return jwt.decode(token);
   },
 
   verifyToken: function (token) {
-    return jwt.verify(token, publicKey);
+    const publicKey = getPublicKey();
+    return jwt.verify(token, publicKey, {
+      algorithms: ["RS256"],
+    });
   },
 };
+
+function getPrivateKey() {
+  return process.env.JWT_PRIVATE_KEY;
+}
+
+function getPublicKey() {
+  return process.env.JWT_PUBLIC_KEY;
+}
 
 module.exports = jwtService;

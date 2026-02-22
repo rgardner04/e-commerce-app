@@ -2,6 +2,11 @@ const express = require("express");
 const router = express.Router();
 const authService = require("../services/authService");
 
+router.get("/page-data", async (_req, res) => {
+  const { status, body } = await authService.getAuthPageData();
+  return res.status(status).send(body);
+});
+
 router.post("/register", async (req, res) => {
   const { status, body } = await authService.register(req.body);
   return res.status(status).send(body);
@@ -14,6 +19,11 @@ router.post("/login", async (req, res) => {
 
 router.post("/verify-email", async (req, res) => {
   const { status, body } = await authService.verifyEmail(req.body);
+  return res.status(status).send(body);
+});
+
+router.post("/resend-verification", async (req, res) => {
+  const { status, body } = await authService.resendVerification(req.body);
   return res.status(status).send(body);
 });
 

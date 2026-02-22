@@ -2,11 +2,18 @@ html,
 body,
 #root {
   margin: 0;
+  padding: 0;
   height: 100vh;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-#root {
-  display: flex;
-  flex-direction: column;
+:root {
+  --main-color: #3eb489;
+  --inactive-color: #66ad93;
+  font-size: 16px;
+}
+
+main {
+  width: 100%;
+  height: 100%;
 }

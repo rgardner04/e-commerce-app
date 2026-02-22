@@ -48,39 +48,6 @@ const User = new Schema(
         "Last name cannot be more than 128 characters in length!",
       ],
     },
-    age: {
-      type: Number,
-      required: [true, "Please enter a valid age!"],
-      min: [18, "You must be at least 18 years old to access the app!"],
-    },
-    street: {
-      type: String,
-      required: [true, "Please enter a valid street!"],
-      maxLength: [255, "Street cannot be more than 255 characters in length!"],
-    },
-    city: {
-      type: String,
-      required: [true, "Please enter a valid city!"],
-      maxLength: [255, "City cannot be more than 255 characters in length!"],
-    },
-    state: {
-      type: String,
-      maxLength: [128, "State cannot be more than 128 characters in length!"],
-    },
-    zipCode: {
-      type: Number,
-      validate: {
-        validator: function (v) {
-          return v.toString().length === 5;
-        },
-        message: (props) => `${props.value} is not a valid zip code!`,
-      },
-    },
-    country: {
-      type: String,
-      required: true,
-      maxLength: [255, "Country cannot be more than 255 characters in length!"],
-    },
     status: {
       type: String,
       required: true,

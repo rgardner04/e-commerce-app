@@ -1,4 +1,53 @@
-.header {
-  height: 10%;
-  padding: 12px 36px;
+header {
+  background-color: white;
+  position: sticky;
+  top: 0;
+  padding: 0.75rem 2rem 0.75rem 0.75rem;
+  border-bottom: 0.5px solid lightgray;
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .header-brand-container {
+    display: flex;
+    margin-right: auto;
+    justify-content: left;
+    align-items: center;
+    gap: 0.5rem;
+
+    h1 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0.5rem 0;
+    }
+
+    .header-brand-icon {
+      background-color: var(--main-color);
+      color: white;
+      padding: 0.25rem;
+      border-radius: 8px;
+    }
+  }
+
+  .header-icon {
+    color: gray;
+  }
+
+  .header-icon:hover {
+    color: var(--main-color);
+  }
+}
+
+@media (min-width: 1280px) {
+  header {
+    display: flex;
+    justify-content: center;
+  }
+  nav {
+    width: 50%;
+    justify-content: center;
+  }
 }

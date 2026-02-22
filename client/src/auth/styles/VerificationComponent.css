@@ -1,0 +1,135 @@
+.verification-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.verification-brand-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .verification-brand-icon {
+    background-color: var(--main-color);
+    color: white;
+    padding: 0.25rem;
+    border-radius: 8px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.verification-form-container {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  justify-content: center;
+
+  form {
+    width: 100%;
+    height: auto;
+    padding: 0.5rem.75rem;
+    border-radius: 8px;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+
+  p {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: gray;
+    text-align: center;
+  }
+
+  fieldset {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    border: none;
+  }
+
+  input {
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    border: 0.5px solid lightgray;
+    border-radius: 8px;
+  }
+
+  input:focus {
+    border: 2px solid var(--main-color);
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  button {
+    width: 100%;
+    padding: 1rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    background-color: var(--main-color);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    margin-top: 1rem;
+  }
+
+  .submit-button-inactive {
+    background-color: var(--inactive-color);
+  }
+
+  .resend-container {
+    margin-top: 1.25rem;
+    display: flex;
+    justify-content: center;
+
+    span {
+      font-size: 0.85rem;
+      color: gray;
+      margin-right: 0.25rem;
+    }
+
+    .resend-span {
+      font-weight: 700;
+      color: var(--main-color);
+      cursor: pointer;
+    }
+  }
+
+  .error-text {
+    text-align: center;
+    color: #ff5252;
+    font-weight: 500;
+  }
+}
+
+@media (min-width: 576px) {
+  form {
+    border: 0.5px solid lightgray;
+  }
+
+  .resend-container {
+    margin-bottom: 1rem;
+  }
+}

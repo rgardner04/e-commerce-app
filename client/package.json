@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "axios": "^1.13.5",
+    "lucide-react": "^0.577.0",
+    "oxlint": "^1.50.0",
+    "prettier": "^3.8.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router": "^7.13.0"

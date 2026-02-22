@@ -1,42 +1,84 @@
 const User = require("../models/User");
+const VerificationCode = require("../models/VerificationCode");
 const RefreshToken = require("../models/RefreshToken");
-const verifyEmailService = require("./verifyEmailService");
+const verificationService = require("./verificationService");
 const jwtService = require("./jwtService");
-const bcrypt = require("bcrypt");
+const passwordService = require("./passwordService");
 const UserNotFoundError = require("../errors/UserNotFoundError");
 const InvalidPasswordError = require("../errors/InvalidPasswordError");
 const InvalidTokenError = require("../errors/InvalidTokenError");
 const mongoose = require("mongoose");
 
 const authService = {
-  register: async function (requestBody) {
-    const { password, ...rest } = requestBody;
+  getAuthPageData: function () {
+    return {
+      status: 200,
+      body: {
+        message: "Auth page data fetched successfully.",
+        status: "success",
+        data: {
+          loginPrimaryMessage: "Welcome back!",
+          loginSecondaryMessage: "Enter your credentials to continue",
+          loginRedirectMessage: "Already have an account?",
+          loginActionMessage: "Sign in",
+          registerPrimaryMessage: "Create an account",
+          registerSecondaryMessage: "Fill in your details to get started",
+          registerRedirectMessage: "Don't have an account?",
+          registerActionMessage: "Sign up",
+          fields: [
+            {
+              name: "email",
+              label: "Email",
+            },
+            {
+              name: "password",
+              label: "Password",
+            },
+            {
+              name: "firstName",
+              label: "First Name",
+            },
+            {
+              name: "lastName",
+              label: "Last Name",
+            },
+          ],
+        },
+      },
+    };
+  },
 
+  register: async function (requestBody) {
     const userToRegister = new User({
-      ...rest,
-      password: await hashPassword(password),
+      ...requestBody,
+      password: await passwordService.hashPassword(requestBody.password),
       roles: ["user"],
       status: "pending",
     });
-    await userToRegister.save();
+    await User.create(userToRegister);
 
-    /*
-     * Don't await verifyEmailService.sendVerificationEmail,
-     * but wrap in try-catch to handle Promise rejection
-     */
-    try {
-      verifyEmailService.sendVerificationEmail({
-        userId: userToRegister._id,
-        toEmail: userToRegister.email,
-      });
-    } catch (error) {}
+    verificationService.sendVerificationEmail({
+      userId: userToRegister._id,
+      toEmail: userToRegister.email,
+    });
 
     return {
       status: 201,
       body: {
         message:
-          "User has been registered as pending. Awaiting confirmation of email.",
+          'User registered as "pending" successfully. A verification email has been sent.',
         status: "success",
+        data: {
+          verificationPrimaryMessage: "Verify your account",
+          verificationSecondaryMessage: `Enter the ${parseInt(process.env.VERIFICATION_CODE_LENGTH)}-digit code sent to your email`,
+          verificationActionMessage: "Verify email",
+          verificationCodeLength: parseInt(
+            process.env.VERIFICATION_CODE_LENGTH,
+          ),
+          resendMessage: "Didn't receive and email?",
+          resendActionMessage: "Resend",
+          secondsBeforeResend: 30,
+        },
       },
     };
   },
@@ -49,38 +91,58 @@ const authService = {
     });
 
     if (!foundUser) {
-      throw new UserNotFoundError(`Unable to find user from email: ${email}`);
+      throw new UserNotFoundError(`Invalid credentials provided`);
     }
 
-    if (!isValidPassword(plainTextPassword, foundUser.password)) {
-      throw new InvalidPasswordError(
-        `Invalid password provided: ${plainTextPassword}`,
-      );
+    const isValidPassword = await passwordService.isValidPassword(
+      plainTextPassword,
+      foundUser.password,
+    );
+    if (!isValidPassword) {
+      throw new InvalidPasswordError(`Invalid credentials provided`);
     }
+
+    verificationService.sendVerificationEmail({
+      userId: foundUser._id,
+      toEmail: foundUser.email,
+    });
 
     return {
       status: 200,
       body: {
         message:
-          "User has provided the correct credentials. Verification email has been sent.",
+          "User credentials verified. A verification email has been sent.",
         status: "success",
+        data: {
+          verificationPrimaryMessage: "Verify your account",
+          verificationSecondaryMessage: `Enter the ${parseInt(process.env.VERIFICATION_CODE_LENGTH)}-digit code sent to your email`,
+          verificationActionMessage: "Verify email",
+          verificationCodeLength: parseInt(
+            process.env.VERIFICATION_CODE_LENGTH,
+          ),
+          resendMessage: "Didn't receive and email?",
+          resendActionMessage: "Resend",
+          secondsBeforeResend: 30,
+        },
       },
     };
   },
 
   verifyEmail: async function (requestBody) {
-    const verifiedUser = await verifyEmailService.verifyEmail(requestBody);
+    const verifiedUser = await verificationService.verifyEmail(requestBody);
 
-    const { accessToken, refreshToken } = generateTokens(verifiedUser);
+    const { accessToken, refreshToken } =
+      jwtService.generateTokens(verifiedUser);
 
     await jwtService.saveRefreshToken(verifiedUser, refreshToken);
 
     return {
       status: 201,
       body: {
-        message: "User's email has been validated succesfully.",
+        message:
+          "User email verified. Access and refresh tokens have been provided.",
         status: "success",
-        tokens: {
+        data: {
           accessToken,
           refreshToken,
         },
@@ -88,46 +150,71 @@ const authService = {
     };
   },
 
-  refresh: async function (requestBody) {
-    const { refreshToken: passedRefreshToken } = requestBody;
+  resendVerification: async function (requestBody) {
+    const { email } = requestBody;
 
-    const foundRefreshToken = await RefreshToken.findOne({
-      token: passedRefreshToken,
-      status: "created",
-    });
-
-    if (!foundRefreshToken) {
-      throw new InvalidTokenError(
-        `Invalid refresh token provided: ${passedRefreshToken}`,
-      );
-    }
-
-    const verifiedToken = jwtService.verifyToken(passedRefreshToken);
-
-    const foundUser = await User.findById(verifiedToken.sub);
-
+    const foundUser = await User.findOne({ email: email });
     if (!foundUser) {
-      throw new UserNotFoundError(
-        "User not found from the subject of the refresh token.",
-      );
+      throw new UserNotFoundError("Invalid credentials provided");
     }
 
-    const { accessToken, refreshToken: newlyGeneratedRfToken } =
-      generateTokens(foundUser);
+    await VerificationCode.findOneAndUpdate(
+      { userId: foundUser._id },
+      { $set: { status: "invalidated" } },
+    ).sort({ createdAt: -1 });
 
-    const session = await mongoose.startSession();
-    session.withTransaction(async () => {
-      await jwtService.saveRefreshToken(foundUser, newlyGeneratedRfToken);
-      await jwtService.updateOldToken(
-        passedRefreshToken,
-        newlyGeneratedRfToken,
-      );
+    verificationService.sendVerificationEmail({
+      toEmail: email,
+      userId: foundUser._id,
     });
 
     return {
       status: 201,
       body: {
-        message: "New access and refresh tokens generated successfully.",
+        message: "Verification code has been resent!",
+        status: "success",
+        data: {
+          resendSuccessMessage:
+            "A verification code has been resent to your email",
+        },
+      },
+    };
+  },
+
+  refresh: async function (requestBody) {
+    const { refreshToken: token } = requestBody;
+
+    const foundToken = await RefreshToken.findOne({
+      token: token,
+      status: "created",
+    });
+
+    if (!foundToken) {
+      throw new InvalidTokenError(`Invalid refresh token provided: ${token}`);
+    }
+
+    const verifiedToken = jwtService.verifyToken(token);
+
+    const foundUser = await User.findById(verifiedToken.sub);
+
+    if (!foundUser) {
+      throw new UserNotFoundError("Invalid refresh token provided");
+    }
+
+    const { accessToken, refreshToken: newlyGeneratedRfToken } =
+      jwtService.generateTokens(foundUser);
+
+    const session = await mongoose.startSession();
+    await session.withTransaction(async () => {
+      await jwtService.saveRefreshToken(foundUser, newlyGeneratedRfToken);
+      await jwtService.updateOldToken(token, newlyGeneratedRfToken);
+    });
+
+    return {
+      status: 201,
+      body: {
+        message:
+          "Refresh successful! New access and refresh tokens generated successfully.",
         status: "success",
         tokens: {
           accessToken,
@@ -137,25 +224,5 @@ const authService = {
     };
   },
 };
-
-async function hashPassword(plainTextPassword) {
-  const hashedPassword = await bcrypt.hash(plainTextPassword, 10);
-  return hashedPassword;
-}
-
-async function isValidPassword(plainTextPassword, hashedPassword) {
-  const isValidPassword = await bcrypt.compare(
-    plainTextPassword,
-    hashedPassword,
-  );
-  return isValidPassword;
-}
-
-function generateTokens(user) {
-  const accessToken = jwtService.generateAccessToken(user);
-  const refreshToken = jwtService.generateRefreshToken(user);
-
-  return { accessToken, refreshToken };
-}
 
 module.exports = authService;
