@@ -1,0 +1,21 @@
+services:
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  app:
+    env_file:
+      - ./server/.env.docker
+    build: .
+    container_name: e-commerce-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+
+volumes:
+  mongo-data:

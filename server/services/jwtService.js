@@ -75,11 +75,21 @@ const jwtService = {
 };
 
 function getPrivateKey() {
-  return process.env.JWT_PRIVATE_KEY;
+  const privateKey = process.env.JWT_PRIVATE_KEY;
+  if (!privateKey) {
+    throw new Error("JWT private key missing from environment variables!");
+  }
+  const formattedPrivateKey = privateKey.replace(/\\n/g, "\n");
+  return formattedPrivateKey;
 }
 
 function getPublicKey() {
-  return process.env.JWT_PUBLIC_KEY;
+  const publicKey = process.env.JWT_PUBLIC_KEY;
+  if (!publicKey) {
+    throw new Error("JWT public key missing from environment variables!");
+  }
+  const formattedPublicKey = publicKey.replace(/\\n/g, "\n");
+  return formattedPublicKey;
 }
 
 module.exports = jwtService;

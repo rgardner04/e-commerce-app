@@ -61,7 +61,7 @@ const verificationService = {
         { $set: { status: "validated" } },
       );
 
-      if (foundUser.status !== "pending") {
+      if (foundUser.status === "pending") {
         await User.updateOne(
           { _id: foundUser._id },
           { $set: { status: "activated" } },

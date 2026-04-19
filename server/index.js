@@ -1,4 +1,5 @@
 require("dotenv").config();
+const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -20,6 +21,7 @@ async function connectToDatabase() {
     await mongoose.connect(process.env.MONGO_DB_URI);
     console.log(`Connected to E-commerce DB at: ${process.env.MONGO_DB_URI}`);
   } catch (error) {
+    console.log("MONGO_DB_URI", process.env.MONGO_DB_URI);
     console.log(
       `An error occured when connecting to the E-commerce DB: ${error}`,
     );
@@ -63,6 +65,12 @@ app.use(
 
 //Response Middlewares
 app.use(errorMiddleware);
+
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server is running on port: ${process.env.PORT || 3000}`);
