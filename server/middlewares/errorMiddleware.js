@@ -3,8 +3,6 @@ function errorMiddleware(err, req, res, next) {
     next();
   }
 
-  console.log("err", err);
-
   if (!err.name) {
     const { status, body } = getErrorDetails(
       500,

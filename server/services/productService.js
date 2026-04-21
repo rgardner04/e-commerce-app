@@ -4,7 +4,6 @@ const Category = require("../models/Category");
 
 const productService = {
   getProducts: async function (page, limit, category, sort, order, search) {
-    console.log("Finding category!");
     let foundCategory = null;
     if (category) {
       foundCategory = await Category.find(

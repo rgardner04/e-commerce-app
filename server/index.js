@@ -19,11 +19,10 @@ const app = express();
 async function connectToDatabase() {
   try {
     await mongoose.connect(process.env.MONGO_DB_URI);
-    console.log(`Connected to E-commerce DB at: ${process.env.MONGO_DB_URI}`);
+    console.log("Connected to e-commerce DB!");
   } catch (error) {
-    console.log("MONGO_DB_URI", process.env.MONGO_DB_URI);
     console.log(
-      `An error occured when connecting to the E-commerce DB: ${error}`,
+      `An error occured when connecting to the e-commerce DB: ${error}`,
     );
   }
 }
